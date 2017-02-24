@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ast.practica1;
 
+import static ast.practica1.Util.*;
 import ast.util.Queue;
 import java.util.Iterator;
 
@@ -66,13 +62,12 @@ public class CircularQueue<T> implements Queue<T> {
         final CircularQueue<String> queue = new CircularQueue<>(4);
         
         // Initial state
-        //TODO: change assert to _assert
-        _assert(queue.size(), 0);
+        expect(queue.size(), 0);
         //TODO
         
         // Normal get / put
         queue.put("test");
-        _assert(queue.get(), "test");
+        expect(queue.get(), "test");
         
         // Overflow queue
         queue.put("one");
@@ -82,25 +77,25 @@ public class CircularQueue<T> implements Queue<T> {
             queue.put("four");
             throw new AssertionError();
         } catch (IllegalStateException ex) {
-            _assert(ex.getMessage(), "Queue is full");
+            expect(ex.getMessage(), "Queue is full");
         }
         
         // Underflow queue
-        _assert(queue.get(), "three");
-        _assert(queue.get(), "two");
-        _assert(queue.get(), "one");
+        expect(queue.get(), "three");
+        expect(queue.get(), "two");
+        expect(queue.get(), "one");
         try {
             queue.get();
             throw new AssertionError();
         } catch (IllegalStateException ex) {
-            _assert(ex.getMessage(), "Queue is full");
+            expect(ex.getMessage(), "Queue is full");
         }
         
         // Null elements
         queue.put(null);
         queue.put(null);
-        _assert(queue.get(), null);
-        _assert(queue.size(), 1);
+        expect(queue.get(), null);
+        expect(queue.size(), 1);
     }
     
 }
