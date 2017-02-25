@@ -7,7 +7,7 @@ import ast.protocols.tcp.TCPSegment;
  *
  * @author Xavier Mendez
  */
-public class TSocketReceive {
+public class TSocketRecv {
 
     private final Channel channel;
     private TCPSegment segment;
@@ -16,7 +16,7 @@ public class TSocketReceive {
      * Construct and establish a new connection over the passed channel.
      * @param channel the communication channel to use
      */
-    public TSocketReceive(Channel channel) {
+    public TSocketRecv(Channel channel) {
         this.channel = channel;
     }
 

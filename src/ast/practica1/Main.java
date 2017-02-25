@@ -20,7 +20,7 @@ public class Main {
             final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
             final Channel channel = new QueueChannel();
-            final TSocketReceive receiver = new TSocketReceive(channel);
+            final TSocketRecv receiver = new TSocketRecv(channel);
             final TSocketSend sender = new TSocketSend(channel);
 
             String line;
