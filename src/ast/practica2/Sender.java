@@ -34,7 +34,7 @@ public class Sender implements Runnable {
         try {
             String line;
             while ((line = reader.readLine()) != null) {
-                byte[] buffer = line.getBytes();
+                byte[] buffer = (line + "\n").getBytes();
                 sender.sendData(buffer, 0, buffer.length);
             }
             sender.close();
