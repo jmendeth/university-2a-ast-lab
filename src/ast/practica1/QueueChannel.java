@@ -22,7 +22,7 @@ public class QueueChannel implements Channel {
 
     @Override
     public TCPSegment receive() {
-        return queue.get(); //FIXME: check this file with other version
+        return queue.get();
     }
 
 }

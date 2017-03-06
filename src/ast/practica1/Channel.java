@@ -12,6 +12,17 @@ import ast.protocols.tcp.TCPSegment;
  * @author xavier
  */
 public interface Channel {
+
+    /**
+     * Send the passed segment over the channel.
+     * @param seg segment to send.
+     */
     public void send(TCPSegment seg);
+
+    /**
+     * Receive a segment from the channel.
+     * @return the received segment.
+     */
     public TCPSegment receive();
+
 }

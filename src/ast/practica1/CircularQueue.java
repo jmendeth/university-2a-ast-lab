@@ -5,57 +5,78 @@ import ast.util.Queue;
 import java.util.Iterator;
 
 /**
+ * Implements a (non thread-safe) circular queue.
+ * @param <T> Element type
  *
- * @author xavier
+ * @author Xavier Mendez
  */
 public class CircularQueue<T> implements Queue<T> {
 
+    private final T[] buffer;
+    private int head, tail;
+
     public CircularQueue(int n) {
+        this.buffer = (T[]) new Object[n+1];
+        this.head = this.tail = 0;
     }
+
+    // Basic queries
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return (buffer.length + tail - head) % buffer.length;
     }
 
     @Override
-    public boolean hasFree(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean hasFree(int n) {
+        if (n < 0) throw new IllegalArgumentException("Invalid n passed");
+        return (size() + n) < buffer.length;
     }
 
     @Override
     public boolean empty() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return tail == head;
     }
 
     @Override
     public boolean full() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return (tail + 1) % buffer.length == head;
     }
+
+    // Peeking & iterating
 
     @Override
     public T peekFirst() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (empty()) return null;
+        return buffer[head];
     }
 
     @Override
     public T peekLast() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public T get() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void put(T e) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (empty()) return null;
+        return buffer[(buffer.length + tail - 1) % buffer.length];
     }
 
     @Override
     public Iterator<T> iterator() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet");
+    }
+
+    // Insert / remove elements
+
+    @Override
+    public T get() {
+        if (empty()) throw new IllegalStateException("Queue is empty");
+        T result = buffer[head];
+        head = (head + 1) % buffer.length;
+        return result;
+    }
+
+    @Override
+    public void put(T e) {
+        if (full()) throw new IllegalStateException("Queue is full");
+        buffer[tail] = e;
+        tail = (tail + 1) % buffer.length;
     }
 
     public static void main(String[] args) {
