@@ -25,7 +25,7 @@ public class Main {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                send = line.getBytes();
+                send = (line + "\n").getBytes();
                 sender.sendData(send, 0, send.length);
                 
                 recvLength = receiver.receiveData(recv, 0, recv.length);
