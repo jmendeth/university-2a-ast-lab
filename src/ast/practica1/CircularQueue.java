@@ -13,7 +13,7 @@ import java.util.Iterator;
 public class CircularQueue<T> implements Queue<T> {
 
     private final T[] buffer;
-    private int head, tail;
+    private volatile int head, tail;
 
     public CircularQueue(int n) {
         this.buffer = (T[]) new Object[n+1];
