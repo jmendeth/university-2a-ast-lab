@@ -25,4 +25,11 @@ public interface Channel {
      */
     public TCPSegment receive();
 
+    /**
+     * Returns the maximum message length to avoid
+     * fragmentation.
+     * @return the maximum message size.
+     */
+    public int getMMS();
+
 }
