@@ -22,12 +22,18 @@ public class MonitorChannel implements Channel {
     private final Condition sendCV;
     private final Condition recvCV;
     private final CircularQueue<TCPSegment> queue;
+    protected double lossRatio;
 
-    public MonitorChannel() {
+    public MonitorChannel(double lossRatio) {
         this.lk = new ReentrantLock();
         this.sendCV = lk.newCondition();
         this.recvCV = lk.newCondition();
         this.queue = new CircularQueue<>(15);
+        this.lossRatio = lossRatio;
+    }
+    
+    public MonitorChannel() {
+        this(0);
     }
 
     @Override
@@ -35,6 +41,7 @@ public class MonitorChannel implements Channel {
         lk.lock();
         try {
             while (queue.full()) sendCV.await();
+            if (Math.random() < lossRatio) return;
             queue.put(seg);
             recvCV.signal();
         } catch (InterruptedException ex) {
