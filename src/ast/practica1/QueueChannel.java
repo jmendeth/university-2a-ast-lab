@@ -11,8 +11,12 @@ public class QueueChannel implements Channel {
 
     private final CircularQueue<TCPSegment> queue;
 
+    public QueueChannel(int n) {
+        this.queue = new CircularQueue<>(n);
+    }
+    
     public QueueChannel() {
-        this.queue = new CircularQueue<>(15);
+        this(15);
     }
 
     @Override
