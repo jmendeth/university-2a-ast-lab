@@ -121,14 +121,14 @@ public class CircularQueue<T> implements Queue<T> {
         expect(!queue.hasFree(3));
 
         // Underflow queue
-        expect(queue.get(), "three");
-        expect(queue.get(), "two");
         expect(queue.get(), "one");
+        expect(queue.get(), "two");
+        expect(queue.get(), "three");
         try {
             queue.get();
             throw new AssertionError();
         } catch (IllegalStateException ex) {
-            expect(ex.getMessage(), "Queue is full");
+            expect(ex.getMessage(), "Queue is empty");
         }
 
         expect(queue.size(), 0);
