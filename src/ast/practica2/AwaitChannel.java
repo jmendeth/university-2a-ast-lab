@@ -38,6 +38,15 @@ public class AwaitChannel implements Channel {
     public void send(TCPSegment seg) {
         while (true) {
             lock();
+            while (queue.full()) {
+                unlock();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                lock();
+            }
             try {
                 queue.put(seg);
                 return;
@@ -52,6 +61,15 @@ public class AwaitChannel implements Channel {
     public TCPSegment receive() {
         while (true) {
             lock();
+            while (queue.empty()) {
+                unlock();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+                lock();
+            }
             try {
                 return queue.get();
             } catch (IllegalStateException e) {
