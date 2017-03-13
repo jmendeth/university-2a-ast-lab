@@ -17,7 +17,7 @@ public class TSocketSend extends TSocketBase {
      */
     public TSocketSend(Channel channel) {
         super(channel);
-        this.sndMSS = 8; // FIXME: change
+        this.sndMSS = channel.getMMS() - TCPSegment.HEADER_SIZE;
     }
 
     /**
