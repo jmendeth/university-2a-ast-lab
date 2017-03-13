@@ -19,9 +19,13 @@ public class AwaitChannel implements Channel {
     private final CircularQueue<TCPSegment> queue;
     private final AtomicBoolean locked;
 
-    public AwaitChannel() {
-        this.queue = new CircularQueue<>(15);
+    public AwaitChannel(int n) {
+        this.queue = new CircularQueue<>(n);
         this.locked = new AtomicBoolean(false);
+    }
+
+    public AwaitChannel() {
+        this(15);
     }
 
     protected void lock() {

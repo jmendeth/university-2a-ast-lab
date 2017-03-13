@@ -16,8 +16,12 @@ public class BusyWaitChannel implements Channel {
 
     private final CircularQueue<TCPSegment> queue;
 
+    public BusyWaitChannel(int n) {
+        this.queue = new CircularQueue<>(n);
+    }
+    
     public BusyWaitChannel() {
-        this.queue = new CircularQueue<>(15);
+        this(15);
     }
 
     @Override
