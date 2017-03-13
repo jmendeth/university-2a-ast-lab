@@ -15,7 +15,8 @@ public class Main {
         try {
 
             final Reader reader = new InputStreamReader(System.in);
-            final Channel channel = new BusyWaitChannel();
+            //final Channel channel = new BusyWaitChannel();
+            final Channel channel = new AwaitChannel();
 
             final Thread senderThread = new Thread(new Sender(channel, reader));
             final Thread receiverThread = new Thread(new Receiver(channel, System.out));
