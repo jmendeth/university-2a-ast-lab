@@ -9,12 +9,15 @@ import ast.protocols.tcp.TCPSegment;
  */
 public class TSocketSend extends TSocketBase {
 
+    protected int sndMSS;
+
     /**
      * Construct and establish a new connection over the passed channel.
      * @param channel the communication channel to use
      */
     public TSocketSend(Channel channel) {
         super(channel);
+        this.sndMSS = 8; // FIXME: change
     }
 
     /**
@@ -25,10 +28,24 @@ public class TSocketSend extends TSocketBase {
      * @param length count of bytes to send
      */
     public void sendData(byte[] data, int offset, int length) {
+        while (length > 0) {
+            int size = length;
+            if (size > sndMSS) size = sndMSS;
+            sendSegment(segmentize(data, offset, size));
+            offset += size;
+            length -= size;
+        }
+    }
+
+    protected TCPSegment segmentize(byte[] data, int offset, int length) {
         byte[] copy = new byte[length];
         System.arraycopy(data, offset, copy, 0, length);
         TCPSegment segment = new TCPSegment();
         segment.setData(copy);
+        return segment;
+    }
+
+    protected void sendSegment(TCPSegment segment) {
         channel.send(segment);
     }
 
