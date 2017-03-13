@@ -23,6 +23,7 @@ public class BusyWaitChannel implements Channel {
     @Override
     public void send(TCPSegment seg) {
         while (true) {
+            while (queue.full());
             try {
                 queue.put(seg);
                 return;
@@ -33,6 +34,7 @@ public class BusyWaitChannel implements Channel {
     @Override
     public TCPSegment receive() {
         while (true) {
+            while (queue.empty());
             try {
                 return queue.get();
             } catch (IllegalStateException e) {}
