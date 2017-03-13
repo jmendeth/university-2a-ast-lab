@@ -7,16 +7,14 @@ import ast.protocols.tcp.TCPSegment;
  *
  * @author Xavier Mendez
  */
-public class TSocketSend {
-
-    private final Channel channel;
+public class TSocketSend extends TSocketBase {
 
     /**
      * Construct and establish a new connection over the passed channel.
      * @param channel the communication channel to use
      */
     public TSocketSend(Channel channel) {
-        this.channel = channel;
+        super(channel);
     }
 
     /**

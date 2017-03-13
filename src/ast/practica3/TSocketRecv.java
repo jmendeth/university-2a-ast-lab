@@ -7,9 +7,8 @@ import ast.protocols.tcp.TCPSegment;
  *
  * @author Xavier Mendez
  */
-public class TSocketRecv {
+public class TSocketRecv extends TSocketBase {
 
-    private final Channel channel;
     private TCPSegment segment;
 
     /**
@@ -17,7 +16,7 @@ public class TSocketRecv {
      * @param channel the communication channel to use
      */
     public TSocketRecv(Channel channel) {
-        this.channel = channel;
+        super(channel);
     }
 
     /**
