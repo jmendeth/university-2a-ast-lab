@@ -78,7 +78,7 @@ public class TSocketRecv extends TSocketBase {
         lk.lock();
         try {
             if (!rcvQueue.full())
-                rcvQueue.put(segment);
+                rcvQueue.put(rseg);
             appCV.signal();
         } finally {
             lk.unlock();

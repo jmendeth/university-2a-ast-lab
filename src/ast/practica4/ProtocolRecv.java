@@ -29,7 +29,7 @@ public class ProtocolRecv extends ProtocolBase {
     }
 
     protected void ipInput(TCPSegment segment) {
-        getMatchingTSocket(segment.getSourcePort(), segment.getDestinationPort())
+        getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort())
                 .processReceivedSegment(segment);
     }
 

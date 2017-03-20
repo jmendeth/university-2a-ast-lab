@@ -54,7 +54,7 @@ public class TSocketSend extends TSocketBase {
      * Closes the connection and frees associated resources.
      */
     public void close() {
-        this.proto.channel.send(new TCPSegment());
+        sendSegment(new TCPSegment());
     }
 
 }
