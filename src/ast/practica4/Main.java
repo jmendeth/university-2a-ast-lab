@@ -30,9 +30,10 @@ class Host1 implements Runnable {
 
     @Override
     public void run() {
-        //arranca dos fils receptors, cadascun amb el seu socket de recepcio
-        //fes servir els ports apropiats
-        //...
+        TSocketRecv socket1 = proto.openForInput(PORT, Host2.PORT1);
+        new Thread(new Receiver(socket1)).start();
+        TSocketRecv socket2 = proto.openForInput(PORT, Host2.PORT2);
+        new Thread(new Receiver(socket2)).start();
     }
 
 }
@@ -51,9 +52,10 @@ class Host2 implements Runnable {
     
     @Override
     public void run() {
-        //arranca dos fils emissors, cadascun amb el seu socket de transmissio
-        //fes servir els ports apropiats
-        //...
+        TSocketSend socket1 = proto.openForOutput(PORT1, Host1.PORT);
+        new Thread(new Sender(socket1)).start();
+        TSocketSend socket2 = proto.openForOutput(PORT2, Host1.PORT);
+        new Thread(new Sender(socket2)).start();
     }
     
 }
