@@ -17,7 +17,8 @@ public class TSocket {
 
     protected Protocol proto;
     protected Lock lk;
-    protected Condition appCV;
+    protected Condition txReady;
+    protected Condition rxReady;
 
     protected int localPort;
     protected int remotePort;
@@ -35,7 +36,8 @@ public class TSocket {
      */
     protected TSocket(Protocol p, int localPort, int remotePort) {
         lk = new ReentrantLock();
-        appCV = lk.newCondition();
+        txReady = lk.newCondition();
+        rxReady = lk.newCondition();
         proto = p;
         this.localPort = localPort;
         this.remotePort = remotePort;
@@ -53,23 +55,34 @@ public class TSocket {
         lk.lock();
         try {
             log.debug("%s->sendData(length=%d)", this, length);
-            // A completar per l'estudiant:
-            ...
-            // for each segment to send
-                // wait until the sender is not expecting an acknowledgement
-                // create a data segment and send it
+            while (length > 0) {
+                int size = length;
+                if (size > sndMSS) size = sndMSS;
+                sendSegment(segmentize(data, offset, size));
+                sndIsUna = true;
+                while (sndIsUna) txReady.await();
+                offset += size;
+                length -= size;
+            }
+        } catch (InterruptedException ex) {
+            log.error(ex);
         } finally {
             lk.unlock();
         }
     }
 
     protected TCPSegment segmentize(byte[] data, int offset, int length) {
-        // A completar per l'estudiant (veieu practica 4):
-        ...
+        byte[] copy = new byte[length];
+        System.arraycopy(data, offset, copy, 0, length);
+        TCPSegment segment = new TCPSegment();
+        segment.setData(copy);
+        return segment;
     }
 
     protected void sendSegment(TCPSegment segment) {
         log.debug("%s->sendSegment(%s)", this, segment);
+        segment.setSourcePort(localPort);
+        segment.setDestinationPort(remotePort);
         proto.net.send(segment);
     }
 
@@ -82,10 +95,13 @@ public class TSocket {
         lk.lock();
         try {
             log.debug("%s->receiveData(maxlen=%d)", this, maxlen);
-            // A completar per l'estudiant:
-            ...
-            // wait until it's a received segment
-            // get data from the received segment and decide when to send an ACK
+            while (rcvSegment == null) rxReady.await();
+            int ret = consumeSegment(buf, offset, maxlen);
+            if (rcvSegment == null) sendAck();
+            return ret;
+        } catch (InterruptedException ex) {
+            log.error(ex);
+            return 0;
         } finally {
             lk.unlock();
         }
@@ -116,7 +132,7 @@ public class TSocket {
         ack.setDestinationPort(remotePort);
         ack.setFlags(TCPSegment.ACK);
         log.debug("%s->sendAck(%s)", this, ack);
-	    proto.net.send(ack);
+	proto.net.send(ack);
     }
 
 
@@ -130,8 +146,8 @@ public class TSocket {
         try {
             // Check ACK
             if (rseg.isAck()) {
-                // A completar per l'estudiant:
-                ...
+                sndIsUna = false; //FIXME: should send and look at seg number
+                txReady.signal();
                 logDebugState();
             } else if (rseg.getDataLength() > 0) {
                 // Process segment data
@@ -140,8 +156,8 @@ public class TSocket {
                                 this, rseg.getDataLength());
                     return;
                 }
-                // A completar per l'estudiant:
-                ...
+                rcvSegment = rseg;
+                rxReady.signal();
                 logDebugState();
             }
         } finally {
