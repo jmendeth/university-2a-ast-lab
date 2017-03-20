@@ -20,6 +20,8 @@ public class ProtocolRecv extends ProtocolBase {
     public TSocketRecv openForInput(int localPort, int remotePort) {
         lk.lock();
         try {
+            if (getMatchingTSocket(localPort, remotePort) != null)
+                return null;
             TSocketRecv socket = new TSocketRecv(this, localPort, remotePort);
             sockets.add(socket);
             return socket;
@@ -29,8 +31,8 @@ public class ProtocolRecv extends ProtocolBase {
     }
 
     protected void ipInput(TCPSegment segment) {
-        getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort())
-                .processReceivedSegment(segment);
+        TSocketRecv socket = getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort());
+        if (socket != null) socket.processReceivedSegment(segment);
     }
 
     protected TSocketRecv getMatchingTSocket(int localPort, int remotePort) {
