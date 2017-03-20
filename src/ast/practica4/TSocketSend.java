@@ -45,6 +45,8 @@ public class TSocketSend extends TSocketBase {
     }
 
     protected void sendSegment(TCPSegment segment) {
+        segment.setSourcePort(localPort);
+        segment.setDestinationPort(remotePort);
         this.proto.channel.send(segment);
     }
 
