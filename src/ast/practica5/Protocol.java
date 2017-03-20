@@ -31,23 +31,29 @@ public class Protocol {
     public TSocket openWith(int localPort, int remotePort) {
         lk.lock();
         try {
-            // A completar per l'estudiant (veieu practica 4):
-            ...
+            if (getMatchingTSocket(localPort, remotePort) != null)
+                return null;
+            TSocket socket = new TSocket(this, localPort, remotePort);
+            sockets.add(socket);
+            return socket;
         } finally {
             lk.unlock();
         }
     }
 
     protected void ipInput(TCPSegment segment) {
-        // A completar per l'estudiant (veieu practica 4):
-        ...
+        TSocket socket = getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort());
+        if (socket != null) socket.processReceivedSegment(segment);
     }
 
     protected TSocket getMatchingTSocket(int localPort, int remotePort) {
         lk.lock();
         try {
-            // A completar per l'estudiant (veieu practica 4):
-            ...
+            for (TSocket socket : sockets) {
+                if (socket.localPort == localPort && socket.remotePort == remotePort)
+                    return socket;
+            }
+            return null;
         } finally {
             lk.unlock();
         }
