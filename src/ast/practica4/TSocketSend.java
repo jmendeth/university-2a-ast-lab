@@ -3,33 +3,56 @@ package ast.practica4;
 import ast.protocols.tcp.TCPSegment;
 
 /**
- * @author AST's teachers
+ * Implements the sending interface of the transport layer.
+ *
+ * @author Xavier Mendez
  */
 public class TSocketSend extends TSocketBase {
 
-    protected int sndMSS;       // Send maximum segment size
+    protected int sndMSS;
 
     /**
-     * Create an endpoint bound to the local IP address and the given TCP port.
-     * The local IP address is determined by the networking system.
+     * Construct and establish a new connection over the passed channel.
      */
     protected TSocketSend(ProtocolSend p, int localPort, int remotePort) {
         super(p, localPort, remotePort);
-        sndMSS = p.channel.getMMS() - TCPSegment.HEADER_SIZE; // IP maximum message size - TCP header size
+        this.sndMSS = p.channel.getMMS() - TCPSegment.HEADER_SIZE;
     }
 
+    /**
+     * Sends data to the peer.
+     *
+     * @param data buffer where data is to be read from
+     * @param offset offset of first byte to read
+     * @param length count of bytes to send
+     */
     public void sendData(byte[] data, int offset, int length) {
-        //...
+        while (length > 0) {
+            int size = length;
+            if (size > sndMSS) size = sndMSS;
+            sendSegment(segmentize(data, offset, size));
+            offset += size;
+            length -= size;
+        }
     }
 
     protected TCPSegment segmentize(byte[] data, int offset, int length) {
-        TCPSegment seg = new TCPSegment();
-        //...
-        return seg;
+        byte[] copy = new byte[length];
+        System.arraycopy(data, offset, copy, 0, length);
+        TCPSegment segment = new TCPSegment();
+        segment.setData(copy);
+        return segment;
     }
 
     protected void sendSegment(TCPSegment segment) {
-        proto.channel.send(segment);
+        this.proto.channel.send(segment);
+    }
+
+    /**
+     * Closes the connection and frees associated resources.
+     */
+    public void close() {
+        this.proto.channel.send(new TCPSegment());
     }
 
 }
