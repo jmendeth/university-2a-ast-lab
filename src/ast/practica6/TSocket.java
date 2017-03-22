@@ -24,7 +24,8 @@ public class TSocket {
     protected int remotePort;
 
     protected Lock lk;
-    protected Condition appCV;
+    protected Condition sndReady;
+    protected Condition rcvReady;
 
     // Sender variables:
     protected static final int SND_RTO = 500; // Retransmission timeout in milliseconds
@@ -48,7 +49,8 @@ public class TSocket {
         this.localPort = localPort;
         this.remotePort = remotePort;
         lk = new ReentrantLock();
-        appCV = lk.newCondition();
+        sndReady = lk.newCondition();
+        rcvReady = lk.newCondition();
         // init sender variables
         sndMSS = proto.net.getMMS() - TCPSegment.HEADER_SIZE; // IP maximum message size - TCP header size
         sndNxt = 0;
@@ -62,27 +64,39 @@ public class TSocket {
 
 
     // -------------  SENDER PART  ---------------
-    public void sendData(byte[] data, int offset, int count) {
+    public void sendData(byte[] data, int offset, int length) {
         lk.lock();
         try {
-            log.debug("%s->sendData(count=%d)", this, count);
-            // A completar per l'estudiant:
-            ...
-            // for each segment to send
-                // wait until the sender is not expecting an acknowledgement
-                // create a data segment and send it
+            log.debug("%s->sendData(count=%d)", this, length);
+            while (length > 0) {
+                int size = length;
+                if (size > sndMSS) size = sndMSS;
+                sndUnackedSegment = segmentize(data, offset, size);
+                sendSegment(sndUnackedSegment);
+                while (sndUnackedSegment != null) sndReady.await();
+                offset += size;
+                length -= size;
+            }
+        } catch (InterruptedException ex) {
+            log.error(ex);
         } finally {
             lk.unlock();
         }
     }
 
-    protected TCPSegment segmentize(byte[] data, int offset, int count) {
-        // A completar per l'estudiant:
-        ...
+    protected TCPSegment segmentize(byte[] data, int offset, int length) {
+        byte[] copy = new byte[length];
+        System.arraycopy(data, offset, copy, 0, length);
+        TCPSegment segment = new TCPSegment();
+        segment.setSeqNum(sndNxt++);
+        segment.setData(copy);
+        return segment;
     }
 
     protected void sendSegment(TCPSegment segment) {
         log.debug("%s->sendSegment(%s)", this, segment);
+        segment.setSourcePort(localPort);
+        segment.setDestinationPort(remotePort);
         proto.net.send(segment);
         // start timer
         startRTO();
@@ -122,14 +136,17 @@ public class TSocket {
     /**
      * Places received data in buf
      */
-    public int receiveData(byte[] buf, int offset, int maxcount) {
+    public int receiveData(byte[] buf, int offset, int maxlen) {
         lk.lock();
         try {
-            log.debug("%s->receiveData(maxcount=%d)", this, maxcount);
-            // A completar per l'estudiant:
-            ...
-            // wait until it's a received segment
-            // consume data from the received segment and decide when to send an ACK
+            log.debug("%s->receiveData(maxlen=%d)", this, maxlen);
+            while (rcvSegment == null) rcvReady.await();
+            int ret = consumeSegment(buf, offset, maxlen);
+            if (rcvSegment == null) sendAck();
+            return ret;
+        } catch (InterruptedException ex) {
+            log.error(ex);
+            return 0;
         } finally {
             lk.unlock();
         }
@@ -175,13 +192,14 @@ public class TSocket {
         try {
             // Check ACK
             if (rseg.isAck()) {
-                // A completar per l'estudiant:
-                ...
-                // if ACK number is not the expected one
-                //     Retransmit unacked segment
-                // else
-                //     Clear unacked segment variable and stop the timer
-                //     Wake up the sendData's thread
+                stopRTO();
+                if (rseg.getAckNum() != sndNxt) {
+                    assert(sndUnackedSegment != null);
+                    sendSegment(sndUnackedSegment);
+                } else {
+                    sndUnackedSegment = null;
+                    sndReady.signal();
+                }
                 logDebugState();
                 return;
             }
@@ -196,10 +214,9 @@ public class TSocket {
                                 this, rseg.getDataLength());
                     return;
                 }
-                // A completar per l'estudiant:
-                ...
-                // Set the segment not yet consumed
-                // Wake up the receiveData's thread
+                rcvNxt++;
+                rcvSegment = rseg;
+                rcvReady.signal();
                 logDebugState();
             }
         } finally {
