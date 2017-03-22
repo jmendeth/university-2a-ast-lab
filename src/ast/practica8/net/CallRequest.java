@@ -15,4 +15,9 @@ public class CallRequest implements Serializable {
 
     public Operation op;
     public boolean sentit;
+
+    @Override
+    public String toString() {
+        return "CallRequest{" + "op=" + op + ", sentit=" + sentit + '}';
+    }
 }
