@@ -88,8 +88,9 @@ public class TSocket {
         byte[] copy = new byte[length];
         System.arraycopy(data, offset, copy, 0, length);
         TCPSegment segment = new TCPSegment();
-        segment.setSeqNum(sndNxt++);
+        segment.setSeqNum(sndNxt);
         segment.setData(copy);
+        sndNxt = 1 - sndNxt;
         return segment;
     }
 
@@ -214,7 +215,7 @@ public class TSocket {
                                 this, rseg.getDataLength());
                     return;
                 }
-                rcvNxt++;
+                rcvNxt = 1 - rcvNxt;
                 rcvSegment = rseg;
                 rcvReady.signal();
                 logDebugState();
