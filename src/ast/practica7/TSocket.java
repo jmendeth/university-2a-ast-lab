@@ -182,8 +182,7 @@ public class TSocket {
         try {
             switch (state) {
             case LISTEN: {
-                if (rseg.isSyn()) {
-                    //FIXME: what if acceptQueue is full?
+                if (rseg.isSyn() && !acceptQueue.full()) {
                     TSocket socket = new TSocket(proto, localPort);
                     socket.remotePort = rseg.getSourcePort();
                     proto.addActiveTSocket(socket);
