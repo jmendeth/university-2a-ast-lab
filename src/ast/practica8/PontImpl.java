@@ -1,5 +1,6 @@
 package ast.practica8;
 
+import java.io.IOException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,6 +48,10 @@ public class PontImpl implements Pont {
         } finally {
             lk.unlock();
         }
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 
 }

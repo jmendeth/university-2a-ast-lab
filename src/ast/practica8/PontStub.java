@@ -67,4 +67,9 @@ public final class PontStub implements Pont {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        socket.close();
+    }
+
 }
