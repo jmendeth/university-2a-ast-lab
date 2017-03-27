@@ -162,6 +162,7 @@ public class TSocket {
                 fin.setDestinationPort(remotePort);
                 fin.setFin(true);
                 sendSegment(fin);
+                break;
             }
             default:
                 log.error("%s->close: connection does not exist", this);
@@ -193,7 +194,7 @@ public class TSocket {
 
                     TCPSegment syn = new TCPSegment();
                     syn.setSourcePort(localPort);
-                    syn.setDestinationPort(remotePort);
+                    syn.setDestinationPort(socket.remotePort);
                     syn.setSyn(true);
                     socket.sendSegment(syn);
                 }

@@ -104,7 +104,7 @@ public class Protocol {
                     return socket;
             }
             for (TSocket socket : listenTSocks) {
-                if (socket.localPort == localPort && socket.remotePort == remotePort)
+                if (socket.localPort == localPort)
                     return socket;
             }
             return null;
