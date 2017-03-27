@@ -49,13 +49,8 @@ public class Protocol {
     }
 
     public void ipInput(TCPSegment segment) {
-        // Search matching TSocket
-
-        // Completar
-        
-        // Fet en anteriors practiques
-        
-        throw new RuntimeException("Falta completar");
+        TSocket socket = getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort());
+        if (socket != null) socket.processReceivedSegment(segment);
     }
 
     //-------------------------------------------
@@ -103,13 +98,16 @@ public class Protocol {
 
     protected TSocket getMatchingTSocket(int localPort, int remotePort) {
         lk.lock();
-        try{
-        // Completar
-        // Modificar adientment el metode de alguna practica anterior
-        
-        throw new RuntimeException("Falta completar");        
-        
-        
+        try {
+            for (TSocket socket : activeTSocks) {
+                if (socket.localPort == localPort && socket.remotePort == remotePort)
+                    return socket;
+            }
+            for (TSocket socket : listenTSocks) {
+                if (socket.localPort == localPort && socket.remotePort == remotePort)
+                    return socket;
+            }
+            return null;
         } finally {
             lk.unlock();
         }

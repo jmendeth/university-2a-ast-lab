@@ -108,12 +108,12 @@ public class TSocket {
         lk.lock();
         try {
             log.debug("%1$s->accept()", this);
-
-            // Completar
+            while (acceptQueue.empty()) appCV.await();
             log.debug("%1$s->accepted", this);
-
-            throw new RuntimeException("Falta completar");
-
+            return acceptQueue.get();
+        } catch (InterruptedException ex) {
+            log.error(ex);
+            return null;
         } finally {
             lk.unlock();
         }
@@ -128,15 +128,19 @@ public class TSocket {
             log.debug("%s->connect(%d)", this, remPort);
             remotePort = remPort;
             proto.addActiveTSocket(this);
-            // Descomentar la seguent linia i completar        
-            //        state = ... ;
+            state = SYN_SENT;
+
+            TCPSegment syn = new TCPSegment();
+            syn.setSourcePort(localPort);
+            syn.setDestinationPort(remotePort);
+            syn.setSyn(true);
+            sendSegment(syn);
+
             logDebugState();
-        
-            // Completar
-  
-                
-            throw new RuntimeException("Falta completar");  
-        
+
+            while (state != ESTABLISHED) appCV.await();
+        } catch (InterruptedException ex) {
+            log.error(ex);
         } finally {
             lk.unlock();
         }
@@ -149,12 +153,15 @@ public class TSocket {
           switch (state) {
             case ESTABLISHED:
             case CLOSE_WAIT: {
-                
-                // Completar
-
-                throw new RuntimeException("Falta completar");   
-                
-                break;
+                if (state == ESTABLISHED)
+                    state = FIN_WAIT;
+                else
+                    state = CLOSED;
+                TCPSegment fin = new TCPSegment();
+                fin.setSourcePort(localPort);
+                fin.setDestinationPort(remotePort);
+                fin.setFin(true);
+                sendSegment(fin);
             }
             default:
                 log.error("%s->close: connection does not exist", this);
@@ -175,34 +182,27 @@ public class TSocket {
             switch (state) {
             case LISTEN: {
                 if (rseg.isSyn()) {
-                    // create a new TSocket for new connection and set it to ESTABLISHED state
-                    // also set local and remote ports
+                    //FIXME: what if acceptQueue is full?
+                    TSocket socket = new TSocket(proto, localPort);
+                    socket.remotePort = rseg.getSourcePort();
+                    proto.addActiveTSocket(socket);
+                    socket.state = ESTABLISHED;
 
-                    // Completar
-                    
-                    proto.addActiveTSocket(...);
+                    acceptQueue.put(socket);
+                    appCV.signal();
 
-                    // prepare this TSocket to accept the newly created TSocket
-
-                    // Completar
-                    
-                    // from the new TSocket send SYN segment for new connection 
-                
-                    // Completar
-
-                    throw new RuntimeException("Falta completar");   
-                
+                    TCPSegment syn = new TCPSegment();
+                    syn.setSourcePort(localPort);
+                    syn.setDestinationPort(remotePort);
+                    syn.setSyn(true);
+                    socket.sendSegment(syn);
                 }
                 break;
             }
             case SYN_SENT: {
                 if (rseg.isSyn()) {
-                
-                    // Completar
-
-                    throw new RuntimeException("Falta completar");   
-                
-
+                    state = ESTABLISHED;
+                    appCV.signal();
                     logDebugState();
                 }
                 break;
@@ -220,12 +220,13 @@ public class TSocket {
                     }
                 }
                 // Check FIN bit
-                
-                    // Completar
-
-                    throw new RuntimeException("Falta completar");   
-                
-
+                if (rseg.isFin() && state != CLOSE_WAIT) {
+                    if (state == ESTABLISHED)
+                        state = CLOSE_WAIT;
+                    else
+                        state = CLOSED;
+                    appCV.signal();
+                }
                 break;
             }
             }
